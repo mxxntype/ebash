@@ -69,7 +69,7 @@ fn command_type(buitins: Vec<&str>) -> Handler {
     Box::new(move |args: &[&str]| {
         let command = args.first().unwrap_or(&"");
         match buitins.contains(command) {
-            true => println!("builtin"),
+            true => println!("{command} is a shell builtin"),
             false => println!("{command}: command not found"),
         }
     })
