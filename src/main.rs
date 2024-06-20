@@ -4,7 +4,6 @@ use std::{collections::HashMap, fs::DirEntry};
 use std::{env, fs, process, rc::Rc};
 
 const PROMPT: &str = "$ ";
-const EXECUTABLE_MODE: u32 = 0o111;
 
 type Command = &'static str;
 type Handler<'a> = Box<dyn Fn(&[&str]) + 'a>;
@@ -17,12 +16,9 @@ fn main() {
     let mut buitins: HashMap<Command, Handler> = HashMap::new();
 
     let path = Rc::new(
-        env::var("PATH")
-            .unwrap_or_default()
-            .split(':')
+        env::split_paths(&env::var("PATH").unwrap_or_default())
             .flat_map(|path| fs::read_dir(path).and_then(Iterator::collect::<Result<Vec<_>, _>>))
             .flatten()
-            .filter(is_executable)
             .collect::<Vec<_>>(),
     );
 
@@ -73,11 +69,6 @@ fn main() {
 
         commandline.clear();
     }
-}
-
-fn is_executable(file: &fs::DirEntry) -> bool {
-    file.metadata()
-        .map_or(false, |md| md.permissions().mode() & EXECUTABLE_MODE != 0x0)
 }
 
 fn command_exit() -> Handler<'static> {
