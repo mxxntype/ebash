@@ -16,6 +16,8 @@ fn main() {
     let mut commandline = String::new();
     let mut buitins: HashMap<Command, Handler> = HashMap::new();
 
+    println!("$PATH is: {:#?}", env::var("PATH"));
+
     let path = Rc::new(
         env::var("PATH")
             .unwrap_or_default()
