@@ -1,24 +1,23 @@
-# DON'T EDIT THIS!
-#
-# Codecrafters relies on this file being intact to run tests successfully. Any changes
-# here will not reflect when CodeCrafters tests your code, and might even cause build
-# failures.
-#
-# DON'T EDIT THIS!
 [package]
 name = "shell-starter-rust"
 version = "0.1.0"
 authors = ["Codecrafters <hello@codecrafters.io>"]
 edition = "2021"
 
-# DON'T EDIT THIS!
-#
-# Codecrafters relies on this file being intact to run tests successfully. Any changes
-# here will not reflect when CodeCrafters tests your code, and might even cause build
-# failures.
-#
-# DON'T EDIT THIS!
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = "deny"
+nursery = "deny"
+complexity = "deny"
+perf = "deny"
+enum_glob_use = { level = "deny", priority = 1 }
+single_match_else = { level = "allow", priority = 1 }
+option_if_let_else = { level = "allow", priority = 1 }
+or_fun_call = { level = "allow", priority = 1 }
+
 [dependencies]
-anyhow = "1.0.68"                                # error handling
-bytes = "1.3.0"                                  # helps manage buffers
-thiserror = "1.0.38"                             # error handling
+bytes = "1.3.0"
+color-eyre = "0.6.3"
+thiserror = "1.0.38"
