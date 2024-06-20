@@ -15,15 +15,10 @@ fn main() {
     let mut buitins: HashMap<Command, Handler> = HashMap::new();
 
     let path = Rc::new(
-        env::split_paths(
-            &env::var("PATH")
-                .inspect(|path| println!("PATH is: {path}"))
-                .unwrap_or_default(),
-        )
-        .inspect(|dir| println!("Directory: {dir:?}"))
-        .flat_map(|path| fs::read_dir(path).and_then(Iterator::collect::<Result<Vec<_>, _>>))
-        .flatten()
-        .collect::<Vec<_>>(),
+        env::split_paths(&env::var("PATH").unwrap_or_default())
+            .flat_map(|path| fs::read_dir(path).and_then(Iterator::collect::<Result<Vec<_>, _>>))
+            .flatten()
+            .collect::<Vec<_>>(),
     );
 
     buitins.insert("exit", command_exit());
@@ -48,10 +43,6 @@ fn main() {
                 let args = commandline.into_iter().skip(1).collect::<Vec<&str>>();
                 let external = path.iter().find(|file| file.file_name() == command);
                 let builtin = buitins.get(command);
-
-                if command == "my_exe" {
-                    println!("{path:#?}");
-                }
 
                 match (builtin, external) {
                     (Some(handler), _) => handler(&args),
