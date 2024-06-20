@@ -27,6 +27,12 @@ fn main() {
                             .and_then(|w| w.parse::<i32>().ok())
                             .unwrap_or(0),
                     ),
+
+                    "echo" => println!(
+                        "{}",
+                        words.into_iter().skip(1).collect::<Vec<_>>().join(" ")
+                    ),
+
                     _ => println!("{commandline}: command not found"),
                 }
                 io::stdout().flush().unwrap();
