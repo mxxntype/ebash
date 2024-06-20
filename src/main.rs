@@ -1,7 +1,5 @@
-use std::{
-    collections::HashMap,
-    io::{self, Write},
-};
+use std::collections::HashMap;
+use std::io::{self, Write};
 
 const PROMPT: &str = "$ ";
 
@@ -30,10 +28,8 @@ fn main() {
         match stdin.read_line(&mut commandline) {
             Ok(bytes) if bytes > 0 => {
                 let commandline = commandline.split_whitespace().collect::<Vec<&str>>();
-
                 let command = commandline.first().copied().unwrap_or("");
                 let args = commandline.into_iter().skip(1).collect::<Vec<&str>>();
-
                 match buitins.get(command) {
                     Some(handler) => handler(&args),
                     None => println!("{command}: command not found"),
@@ -59,9 +55,7 @@ fn command_exit() -> Handler<'static> {
 }
 
 fn command_echo() -> Handler<'static> {
-    Box::new(|args: &[&str]| {
-        println!("{}", args.join(" "));
-    })
+    Box::new(|args: &[&str]| println!("{}", args.join(" ")))
 }
 
 #[allow(clippy::match_bool)]
