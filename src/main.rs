@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-use std::fs::DirEntry;
 use std::io::{self, Write};
 use std::os::unix::fs::PermissionsExt;
-use std::rc::Rc;
-use std::{env, fs};
+use std::{collections::HashMap, fs::DirEntry};
+use std::{env, fs, process, rc::Rc};
 
 const PROMPT: &str = "$ ";
 const EXECUTABLE_MODE: u32 = 0o111;
@@ -22,8 +20,7 @@ fn main() {
         env::var("PATH")
             .unwrap_or_default()
             .split(':')
-            .map(|path| fs::read_dir(path).and_then(|f| f.collect::<Result<Vec<_>, _>>()))
-            .flatten()
+            .flat_map(|path| fs::read_dir(path).and_then(Iterator::collect::<Result<Vec<_>, _>>))
             .flatten()
             .filter(is_executable)
             .collect::<Vec<_>>(),
@@ -54,7 +51,14 @@ fn main() {
 
                 match (builtin, external) {
                     (Some(handler), _) => handler(&args),
-                    (None, Some(_)) => {} // TODO: Run binary.
+                    (None, Some(bin)) => {
+                        let stdout = process::Command::new(bin.path())
+                            .args(args)
+                            .output()
+                            .unwrap()
+                            .stdout;
+                        print!("{}", String::from_utf8(stdout).unwrap());
+                    }
                     (None, None) => println!("{command}: command not found"),
                 }
 
@@ -74,7 +78,7 @@ fn is_executable(file: &fs::DirEntry) -> bool {
 
 fn command_exit() -> Handler<'static> {
     Box::new(|args: &[&str]| {
-        std::process::exit(
+        process::exit(
             args.first()
                 .and_then(|a| a.parse::<i32>().ok())
                 .unwrap_or(0),
