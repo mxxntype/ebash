@@ -15,6 +15,7 @@ fn main() {
     let commandline = commandline.trim();
 
     if !KNOWN_COMMANDS.contains(&commandline) {
-        println!("{commandline}: commmand not found");
+        println!("{commandline}: command not found");
+        io::stdout().flush().unwrap();
     }
 }
