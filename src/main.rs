@@ -50,7 +50,7 @@ fn main() {
                 let builtin = buitins.get(command);
 
                 if command == "my_exe" {
-                    println!("$PATH is: {:#?}", env::var("PATH"));
+                    println!("{path:#?}");
                 }
 
                 match (builtin, external) {
@@ -61,7 +61,7 @@ fn main() {
                             .output()
                             .unwrap()
                             .stdout;
-                        print!("{}", String::from_utf8(stdout).unwrap());
+                        println!("{}", String::from_utf8(stdout).unwrap().trim_end());
                     }
                     (None, None) => println!("{command}: command not found"),
                 }
