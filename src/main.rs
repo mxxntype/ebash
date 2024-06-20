@@ -70,7 +70,7 @@ fn command_type(buitins: Vec<&str>) -> Handler {
         let command = args.first().unwrap_or(&"");
         match buitins.contains(command) {
             true => println!("{command} is a shell builtin"),
-            false => println!("{command}: command not found"),
+            false => println!("{command}: not found"),
         }
     })
 }
