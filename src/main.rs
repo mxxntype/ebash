@@ -1,7 +1,12 @@
 use std::collections::HashMap;
+use std::fs::DirEntry;
 use std::io::{self, Write};
+use std::os::unix::fs::PermissionsExt;
+use std::rc::Rc;
+use std::{env, fs};
 
 const PROMPT: &str = "$ ";
+const EXECUTABLE_MODE: u32 = 0o111;
 
 type Command = &'static str;
 type Handler<'a> = Box<dyn Fn(&[&str]) + 'a>;
@@ -13,12 +18,26 @@ fn main() {
     let mut commandline = String::new();
     let mut buitins: HashMap<Command, Handler> = HashMap::new();
 
+    let path = Rc::new(
+        env::var("PATH")
+            .unwrap_or_default()
+            .split(':')
+            .map(|path| fs::read_dir(path).and_then(|f| f.collect::<Result<Vec<_>, _>>()))
+            .flatten()
+            .flatten()
+            .filter(is_executable)
+            .collect::<Vec<_>>(),
+    );
+
     buitins.insert("exit", command_exit());
     buitins.insert("echo", command_echo());
     buitins.insert("type", Box::new(|_| unreachable!()));
     buitins.insert(
         "type",
-        command_type(buitins.keys().copied().collect::<Vec<_>>()),
+        command_type(
+            buitins.keys().copied().collect::<Vec<_>>(),
+            Rc::clone(&path),
+        ),
     );
 
     loop {
@@ -30,9 +49,13 @@ fn main() {
                 let commandline = commandline.split_whitespace().collect::<Vec<&str>>();
                 let command = commandline.first().copied().unwrap_or("");
                 let args = commandline.into_iter().skip(1).collect::<Vec<&str>>();
-                match buitins.get(command) {
-                    Some(handler) => handler(&args),
-                    None => println!("{command}: command not found"),
+                let external = path.iter().find(|file| file.file_name() == command);
+                let builtin = buitins.get(command);
+
+                match (builtin, external) {
+                    (Some(handler), _) => handler(&args),
+                    (None, Some(_)) => {} // TODO: Run binary.
+                    (None, None) => println!("{command}: command not found"),
                 }
 
                 io::stdout().flush().unwrap();
@@ -42,6 +65,11 @@ fn main() {
 
         commandline.clear();
     }
+}
+
+fn is_executable(file: &fs::DirEntry) -> bool {
+    file.metadata()
+        .map_or(false, |md| md.permissions().mode() & EXECUTABLE_MODE != 0x0)
 }
 
 fn command_exit() -> Handler<'static> {
@@ -58,13 +86,15 @@ fn command_echo() -> Handler<'static> {
     Box::new(|args: &[&str]| println!("{}", args.join(" ")))
 }
 
-#[allow(clippy::match_bool)]
-fn command_type(buitins: Vec<&str>) -> Handler {
+fn command_type(buitins: Vec<&str>, path: Rc<Vec<DirEntry>>) -> Handler {
     Box::new(move |args: &[&str]| {
         let command = args.first().unwrap_or(&"");
-        match buitins.contains(command) {
-            true => println!("{command} is a shell builtin"),
-            false => println!("{command}: not found"),
+        let builtin = buitins.contains(command);
+        let external = path.iter().find(|f| f.file_name() == *command);
+        match (builtin, external) {
+            (true, _) => println!("{command} is a shell builtin"),
+            (false, Some(f)) => println!("{command} is {}", f.path().to_string_lossy()),
+            (false, None) => println!("{command}: not found"),
         }
     })
 }
