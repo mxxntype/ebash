@@ -16,8 +16,17 @@ fn main() {
             Ok(bytes) if bytes > 0 => {
                 let commandline = commandline.trim();
 
-                match commandline {
-                    "exit" => break,
+                let words = commandline
+                    .split_whitespace()
+                    .map(ToString::to_string)
+                    .collect::<Vec<String>>();
+                match words.first().unwrap_or(&String::new()).as_str() {
+                    "exit" => std::process::exit(
+                        words
+                            .get(1)
+                            .and_then(|w| w.parse::<i32>().ok())
+                            .unwrap_or(0),
+                    ),
                     _ => println!("{commandline}: command not found"),
                 }
                 io::stdout().flush().unwrap();
