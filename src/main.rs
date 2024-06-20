@@ -1,5 +1,4 @@
 use std::io::{self, Write};
-use std::os::unix::fs::PermissionsExt;
 use std::{collections::HashMap, fs::DirEntry};
 use std::{env, fs, process, rc::Rc};
 
