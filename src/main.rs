@@ -16,8 +16,6 @@ fn main() {
     let mut commandline = String::new();
     let mut buitins: HashMap<Command, Handler> = HashMap::new();
 
-    println!("$PATH is: {:#?}", env::var("PATH"));
-
     let path = Rc::new(
         env::var("PATH")
             .unwrap_or_default()
@@ -50,6 +48,10 @@ fn main() {
                 let args = commandline.into_iter().skip(1).collect::<Vec<&str>>();
                 let external = path.iter().find(|file| file.file_name() == command);
                 let builtin = buitins.get(command);
+
+                if command == "my_exe" {
+                    println!("$PATH is: {:#?}", env::var("PATH"));
+                }
 
                 match (builtin, external) {
                     (Some(handler), _) => handler(&args),
